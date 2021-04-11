@@ -1,3 +1,10 @@
+""" 
+    Title: mongodb_test.py
+    Author: James Smith
+    Date: 4/10/2021
+    Assignment: Module 5.2
+"""
+
 from pymongo import MongoClient
 
 url = "mongodb+srv://admin:admin@cluster0.7qjgy.mongodb.net/pytech?retryWrites=true&w=majority"

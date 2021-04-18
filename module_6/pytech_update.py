@@ -21,7 +21,6 @@ print("\n  -- DISPLAYING STUDENTS DOCUMENTS FROM find() QUERY --") #Code borrowe
 for doc in docs:
     print("  Student ID: " + doc["student_id"] + "\n  First Name: " + doc["first_name"] + "\n  Last Name: " + doc["last_name"] + "\n") #Code borrowed from solution for styling
 
-print("\n")
 
 #Update a record within the students collection by using student_id
 db.students.update_one({"student_id": "1007"}, {"$set": {"last_name": "Danielson"}})

@@ -2,7 +2,7 @@
     Title: pytech_update.py
     Author: James Smith
     Date: 4/18/2021
-    Assignment: Module 6.2 Find and update Statements
+    Assignment: Module 6.3 insert and delete statements with find statements for reference
 """
 
 from pymongo import MongoClient

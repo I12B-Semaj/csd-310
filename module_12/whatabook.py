@@ -33,6 +33,9 @@ def center_window(main):
 def enable_button(key):
     validate_user_btn['state'] = NORMAL
 
+def enable_add_book_btn(key):
+    add_book_btn['state'] = NORMAL
+
 def show_menu(frame):
     frame.tkraise()
 
@@ -56,7 +59,7 @@ def show_locations(_cursor):
     stores = _cursor.fetchall()
     print("\n  -- DISPLAYING ALL STORE LOCATIONS --")
     for store in stores:
-        print("Store ID:\t{}\nAddress:\t{}".format(store[0],store[1]))
+        print("Store ID:\t{}\nAddress:\t{}\n".format(store[0],store[1]))
 
 def validate_user(_cursor):
     global user_id
@@ -75,14 +78,14 @@ def validate_user(_cursor):
         # Assigns results from query to users list
         users = _cursor.fetchall()
         if(len(users) == 0):
-            print("A user with {} as the ID does not exist. Please try again (Hint: 1, 2, or 3).".format(text))
+            print("A user with {} as the ID does not exist. Please try again (Hint: 1, 2, or 3).\n".format(text))
         else:
             user_id = text
-            print("Welcome to the WhatABook App, {} {}".format(users[0][1],users[0][2]))
+            print("Welcome to the WhatABook App, {} {}\n".format(users[0][1],users[0][2]))
             show_menu(account_menu)
 
     except:
-        print("Invalid Entry. Please enter an integer value.")
+        print("Invalid Entry. Please enter an integer value.\n")
 
 def show_wishlist(_cursor, _user_id):
     #SELECT query from wishlist table
@@ -99,7 +102,57 @@ def show_wishlist(_cursor, _user_id):
     print("\n  -- DISPLAYING WISHLIST FOR {} {} --".format(wishes[0][1], wishes[0][2]))
     for wish in wishes:
         print("User ID:\t{}\nFirst Name:\t{}\nLast Name:\t{}\n".format(wish[0],wish[1],wish[2]) +
-        "Book ID:\t{}\nBook Name:\t{}\nAuthor\t\t{}".format(wish[3],wish[4],wish[5]))
+        "Book ID:\t{}\nBook Name:\t{}\nAuthor\t\t{}\n".format(wish[3],wish[4],wish[5]))
+
+def show_books_to_add(_cursor, _user_id):
+    #SELECT query from book table
+    _cursor.execute("SELECT book_id, book_name, author, details " +
+    "FROM book " +
+    "WHERE book_id NOT IN (SELECT book_id FROM wishlist WHERE user_id = {});".format(_user_id))
+    additions = _cursor.fetchall()
+    print("\n  -- DISPLAYING BOOKS THAT CAN STILL BE ADDED TO WISHLIST --")
+    for addition in additions:
+        print("Book ID:\t{}\nBook Name:\t{}\nAuthor\t\t{}\nDetails:\t{}\n".format(addition[0],addition[1],addition[2], addition[3]))
+
+def add_book_to_wishlist(_cursor, _user_id, _book_id):    
+    _cursor.execute("INSERT INTO wishlist(user_id, book_id) " +
+    "VALUES({}, {});".format(_user_id, _book_id))
+    print("A book with Book ID {} has been added to your wishlist.\n".format(_book_id))
+    
+
+def validate_book_addition(_cursor, _user_id):
+    global book_id
+    text = book_entry.get()
+    book_entry.delete(0, END)
+    add_book_btn['state'] = DISABLED
+
+    try:
+        int(text)
+        #SELECT query from book table with user input as the WHERE criteria
+        _cursor.execute("SELECT book_id, book_name " + 
+        "FROM book " +
+        "WHERE book_id = {}".format(text))
+
+        # Assigns results from query to books list
+        books = _cursor.fetchall()
+        if(len(books) == 0):
+            print("A Book with {} as the ID does not exist. Please try again.\n".format(text))
+        else:
+            #SELECT query from wishlist table with user input and information as criteria
+            _cursor.execute("SELECT user_id, book_id " +
+            "FROM wishlist " +
+            "WHERE user_id = {} AND book_id = {};".format(_user_id, text))
+            additions = _cursor.fetchall()
+            if(len(additions) > 0):
+                print("A Book with the ID {} already exists in your wishlist.\n".format(text))
+            else:
+                book_id = text
+                #cursor = _cursor
+                #user_id = _user_id
+                add_book_to_wishlist(_cursor, _user_id, book_id)
+
+    except:
+        print("Invalid Entry. Please enter an integer value.\n")
 
 
 
@@ -131,9 +184,11 @@ try:
     show_books_btn = Button(main_menu, text="Show Books", command=lambda:show_books(cursor))
     show_stores_btn = Button(main_menu, text="Show Locations", command=lambda:show_locations(cursor))
     my_account_btn = Button(main_menu, text="My Account", command=lambda:show_menu(validate_account))
-    show_books_btn.pack()
-    show_stores_btn.pack()
-    my_account_btn.pack()
+    exit_program_btn = Button(main_menu, text="Exit", command=root.destroy)
+    show_books_btn.pack(fill='x')
+    show_stores_btn.pack(fill='x')
+    my_account_btn.pack(fill='x')
+    exit_program_btn.pack(fill='x')
 
     #=========================================User Validation Menu Code
     validation_text = Label(validate_account, text='Enter a user ID:')
@@ -142,23 +197,24 @@ try:
     user_entry.pack()
     user_entry.bind("<Key>", enable_button)
     validate_user_btn = Button(validate_account, text="Validate", state = DISABLED, command=lambda: validate_user(cursor))
-    validate_user_btn.pack()
+    validate_user_btn.pack(fill='x')
 
     #=========================================Account Menu Code
     account_menu_title = Label(account_menu, text='Account Menu')
     account_menu_title.pack(fill='x')
     show_wishlist_btn = Button(account_menu, text="Show Wishlist", command=lambda:show_wishlist(cursor,user_id))
-    show_wishlist_btn.pack()
-    show_books_to_add_btn = Button(account_menu, text="Show Books to Add")
-    show_books_to_add_btn.pack()
+    show_wishlist_btn.pack(fill='x')
+    show_books_to_add_btn = Button(account_menu, text="Show Books to Add", command=lambda:show_books_to_add(cursor,user_id))
+    show_books_to_add_btn.pack(fill='x')
     main_menu_btn = Button(account_menu, text="Main Menu", command=lambda:show_menu(main_menu))
-    main_menu_btn.pack()
+    main_menu_btn.pack(fill='x')
     prompt_text = Label(account_menu, text='Enter a book ID:')
     prompt_text.pack(fill='x')
     book_entry = Entry(account_menu, width=20)
     book_entry.pack()
-    add_book_btn = Button(account_menu, text="Add Book", state = DISABLED)
-    add_book_btn.pack()
+    book_entry.bind("<Key>", enable_add_book_btn)
+    add_book_btn = Button(account_menu, text="Add Book", state = DISABLED, command=lambda: validate_book_addition(cursor, user_id))
+    add_book_btn.pack(fill='x')
     root.mainloop()
 
 except mysql.connector.Error as err:

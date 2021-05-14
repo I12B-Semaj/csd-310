@@ -1,8 +1,9 @@
 '''
 James Smith
 CSD 310
-Module 11.2
-5/4/21
+Module 12.3
+5/13/21
+WhatABook Application Code
 '''
 
 import tkinter
@@ -10,6 +11,7 @@ from tkinter import *
 import mysql.connector
 from mysql.connector import errorcode
 
+#Settings for user login information
 config = {
     "user": "whatabook_user",
     "password": "MySQL8IsGreat!",
@@ -18,8 +20,10 @@ config = {
     "raise_on_warnings": True
 }
 
+#Initialize a Tk interface 
 root = Tk()
 
+#Method for centering Tk interface on screen
 def center_window(main):
 
     main.title("WhatABook Application")
@@ -30,15 +34,18 @@ def center_window(main):
     y = (main.winfo_screenheight() // 2) - (height // 2)
     main.geometry('{}x{}+{}+{}'.format(width, height, x, y))
 
+#Methods for enabling menu buttons. Used for error handling.
 def enable_button(key):
     validate_user_btn['state'] = NORMAL
 
 def enable_add_book_btn(key):
     add_book_btn['state'] = NORMAL
 
+#Method used for switching between menu frames in interface
 def show_menu(frame):
     frame.tkraise()
 
+#Method for showing all available books in the database
 def show_books(_cursor):
     #SELECT query from book table
     _cursor.execute("SELECT * FROM book")
@@ -50,6 +57,7 @@ def show_books(_cursor):
     for book in books:
         print("Book ID:\t{}\nBook Name:\t{}\nAuthor:\t\t{}\nDetails:\t{}\n".format(book[0],book[1],book[2],book[3]))
 
+#Method for showing all available store locations and related information in the database
 def show_locations(_cursor):
     #SELECT query from store table
     _cursor.execute("SELECT * FROM store")
@@ -61,6 +69,7 @@ def show_locations(_cursor):
     for store in stores:
         print("Store ID:\t{}\nAddress:\t{}\n".format(store[0],store[1]))
 
+#Method for showing validating user with all necessary error handling
 def validate_user(_cursor):
     global user_id
     text = user_entry.get()
@@ -69,7 +78,7 @@ def validate_user(_cursor):
 
     try:
         int(text)
-        #SELECT query from user table with user input as the WHERE criteria
+        #SELECT query from user table with user input as the WHERE criteria for error handling
         _cursor.execute("SELECT user_id, first_name, last_name " + 
         "FROM user " +
         "WHERE user_id = {}".format(text))
@@ -77,6 +86,7 @@ def validate_user(_cursor):
 
         # Assigns results from query to users list
         users = _cursor.fetchall()
+        #Error Handling Logic
         if(len(users) == 0):
             print("A user with {} as the ID does not exist. Please try again (Hint: 1, 2, or 3).\n".format(text))
         else:
@@ -87,6 +97,7 @@ def validate_user(_cursor):
     except:
         print("Invalid Entry. Please enter an integer value.\n")
 
+#Method for showing all books on the user's wishlist
 def show_wishlist(_cursor, _user_id):
     #SELECT query from wishlist table
     _cursor.execute("SELECT user.user_id, user.first_name, user.last_name, " +
@@ -104,6 +115,7 @@ def show_wishlist(_cursor, _user_id):
         print("User ID:\t{}\nFirst Name:\t{}\nLast Name:\t{}\n".format(wish[0],wish[1],wish[2]) +
         "Book ID:\t{}\nBook Name:\t{}\nAuthor\t\t{}\n".format(wish[3],wish[4],wish[5]))
 
+#Method for showing all books not on the user's wishlist
 def show_books_to_add(_cursor, _user_id):
     #SELECT query from book table
     _cursor.execute("SELECT book_id, book_name, author, details " +
@@ -114,12 +126,13 @@ def show_books_to_add(_cursor, _user_id):
     for addition in additions:
         print("Book ID:\t{}\nBook Name:\t{}\nAuthor\t\t{}\nDetails:\t{}\n".format(addition[0],addition[1],addition[2], addition[3]))
 
+#Method for adding user's requested book to their wishlist
 def add_book_to_wishlist(_cursor, _user_id, _book_id):    
     _cursor.execute("INSERT INTO wishlist(user_id, book_id) " +
     "VALUES({}, {});".format(_user_id, _book_id))
     print("A book with Book ID {} has been added to your wishlist.\n".format(_book_id))
     
-
+#Method for error handling user input when executing add_book_to_wishlist method
 def validate_book_addition(_cursor, _user_id):
     global book_id
     text = book_entry.get()
@@ -135,6 +148,8 @@ def validate_book_addition(_cursor, _user_id):
 
         # Assigns results from query to books list
         books = _cursor.fetchall()
+        
+        #Error handling logic
         if(len(books) == 0):
             print("A Book with {} as the ID does not exist. Please try again.\n".format(text))
         else:

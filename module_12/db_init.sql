@@ -5,6 +5,8 @@
  Description: WhatABook DB initialization code
 */
 
+use whatabook;
+
 DROP USER IF EXISTS 'whatabook_user'@'localhost';
 
 CREATE USER 'whatabook_user'@'localhost' IDENTIFIED WITH mysql_native_password BY 'MySQL8IsGreat!';
